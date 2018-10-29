@@ -13,7 +13,7 @@
     <Reference Include="netstandard" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
     <PackageReference Include="OpenSoftware.OptionParser" Version="1.1.4" />
   </ItemGroup>
   <ItemGroup>
