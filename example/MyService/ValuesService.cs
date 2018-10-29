@@ -19,9 +19,10 @@ namespace MyService
         }
 
         [FromPostMethod]
-        public string Post([FromHttpHeader("Foo")]string header, [FromPayload("X")]string bla, [FromPayload("Y")]DateTime foo)
+        public string DoSomething([FromHttpHeader("MyHeader")]string text, [FromPayload("X")]string propX, [FromPayload("Y")]DateTime propY
+        )
         {
-            var result = _stringUtils.ToUpper("Hello " + bla + " " + foo + " " + header);
+            var result = _stringUtils.ToUpper("Hello " + propX + " " + propY + " " + text);
             return result;
         }
     }
