@@ -19,7 +19,7 @@
     },
     "ServiceGenerator": {
       "commandName": "Project",
-      "commandLineArgs": " --urls http://0.0.0.0:2700 --service C:\\Users\\mdejong\\source\\repos\\ServiceGenerator\\MyService\\bin\\Debug\\netcoreapp2.1\\MyService.dll",
+      "commandLineArgs": " --urls http://0.0.0.0:2700 --service ..\\..\\example\\MyService\\bin\\Debug\\netcoreapp2.1\\MyService.dll",
       "launchBrowser": true,
       "launchUrl": "api/values",
       "environmentVariables": {
