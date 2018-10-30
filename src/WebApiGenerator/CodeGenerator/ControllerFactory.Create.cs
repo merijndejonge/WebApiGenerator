@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Logging;
 using OpenSoftware.WebApiClient;
 
 namespace OpenSoftware.WebApiGenerator.CodeGenerator
@@ -11,19 +12,26 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
     public static partial class ControllerFactory
     {
         public static IEnumerable<(IEnumerable<Type> controllerType, IServiceMetadata serviceMetadata)> Create(
-            params Assembly[] assemblies)
+            ILoggerFactory logFactory, params Assembly[] assemblies)
         {
-            return assemblies.Select(CreateSingle);
+            return assemblies.Select(x => CreateSingle(logFactory, x));
         }
-        public static (IEnumerable<Type> controllerType, IServiceMetadata serviceMetadata) CreateSingle(Assembly assembly)
+        public static (IEnumerable<Type> controllerType, IServiceMetadata serviceMetadata) CreateSingle(
+            ILoggerFactory logFactory, Assembly assembly)
         {
-            var serviceMetadataType = assembly.GetTypes().SingleOrDefault(x => typeof(IServiceMetadata).IsAssignableFrom(x));
-            if (serviceMetadataType == null)
-            {
-                throw new InvalidEnumArgumentException("assembly doesn't contain type with ServiceMetadataAttribute attribute.");
-            }
+            var logger = logFactory.CreateLogger(nameof(ControllerFactory));
 
-            var serviceMetadata = (IServiceMetadata)Activator.CreateInstance(serviceMetadataType);
+            IServiceMetadata serviceMetadata = null;
+            var serviceMetadataType = assembly.GetTypes().SingleOrDefault(x => typeof(IServiceMetadata).IsAssignableFrom(x));
+            if (serviceMetadataType != null)
+            {
+                logger.LogInformation($"Using service meta data from {serviceMetadataType.FullName}.");
+                serviceMetadata = (IServiceMetadata)Activator.CreateInstance(serviceMetadataType);
+            }
+            else
+            {
+                logger.LogInformation($"No service meta data found, using default.");
+            }
 
             var serviceTypes = GetServiceTypes(assembly);
             var generatedCode = CreateControllerCode(serviceTypes);

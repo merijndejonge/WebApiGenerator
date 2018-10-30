@@ -56,12 +56,13 @@ namespace OpenSoftware.WebApiGenerator
                 serviceArgs.Add(options.Urls.Name + "=" + options.Urls.Value);
             }
 
-            CreateWebHostBuilder(serviceArgs.ToArray(), serviceAssembly, startupType).Build().Run();
+            CreateWebHostBuilder(logFactory, serviceArgs.ToArray(), serviceAssembly, startupType).Build().Run();
         }
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args, Assembly serviceAssembly, Type startupType)
+        public static IWebHostBuilder CreateWebHostBuilder(ILoggerFactory logFactory, string[] args,
+            Assembly serviceAssembly, Type startupType)
             => WebHost.CreateDefaultBuilder(args)
                 .UseStartup(startupType)
-                .AddServiceGenerator(serviceAssembly);
+                .AddServiceGenerator(logFactory, serviceAssembly);
         private static Type GetStartupClassFromAssembly(Assembly startupAssembly)
         {
             return startupAssembly.GetTypes().SingleOrDefault(x =>
