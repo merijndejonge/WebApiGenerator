@@ -116,4 +116,4 @@ If such a class exists, it will replce the default startup class that otherwise 
 ## More info
 Source code of `WebApiGenerator` is available at [GitHub](https://github.com/merijndejonge/WebApiGenerator). 
 
-`WebApiGenerator.Dgml` is distributed under the [Apache 2.0 License](https://github.com/merijndejonge/WebApiGenerator/blob/master/LICENSE).
+`WebApiGenerator` is distributed under the [Apache 2.0 License](https://github.com/merijndejonge/WebApiGenerator/blob/master/LICENSE).
