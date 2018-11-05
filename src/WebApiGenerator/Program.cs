@@ -66,7 +66,7 @@ namespace OpenSoftware.WebApiGenerator
         private static Type GetStartupClassFromAssembly(Assembly startupAssembly)
         {
             return startupAssembly.GetTypes().SingleOrDefault(x =>
-                x.GetMethods().Any(m => m.Name == nameof(DefaultGeneratorStartup.ConfigureServices)));
+                x.GetMethods().Any(m => m.Name == nameof(DefaultGeneratorStartup.Configure)));
         }
 
         /// <summary>

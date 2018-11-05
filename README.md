@@ -110,7 +110,7 @@ This interface has just a single method that is used for registering additional 
 ### Service setup
 The WebApiGenerator cannot and does not make many assumptions about how your service should run. For basic services, the default service startup class that is used will be sufficient. However, if your service has special requirements in order to function properly, you hve to define the corresponding startup class yourself. This is the case, for example, if a database connections needs to be created, or of youu service uses authentication. The good thing is that this Startup class can easily be shared between multiple services. This helps to keep your services consistent.
 
-You can specify your startup class with the `--startup` swicth. This switch expects the path to an assembly containing a normal Asp.Net Core startup class (i.e., a class with a `ConfigureServices`, and (optional)  `Configure` methods).
+You can specify your startup class with the `--startup` swicth. This switch expects the path to an assembly containing a normal Asp.Net Core startup class (i.e., a class with a `Configure`, and (optional)  `ConfigureServices` methods).
 If such a class exists, it will replce the default startup class that otherwise will be used.
 
 ## More info
