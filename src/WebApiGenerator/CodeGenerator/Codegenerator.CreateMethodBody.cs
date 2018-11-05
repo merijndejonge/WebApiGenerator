@@ -68,11 +68,18 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 }
             }
 
-            var callText = $"var result = _service.{methodInfo.Name}({string.Join(',', parameterList)});";
-            yield return SyntaxFactory.ParseStatement(callText);
+            string callText = "";
+            if (methodInfo.ReturnType == typeof(void))
+            {
+                callText = $"_service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok();";
+            }
+            else
+            {
+                callText = $"var result = _service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok(result);";
+            }
 
-            var returnText = "return Ok(result);";
-            yield return SyntaxFactory.ParseStatement(returnText);
+            callText = $"try {{ {callText} }} catch{{ return BadRequest(); }}";
+            yield return SyntaxFactory.ParseStatement(callText);
         }
 
         private static Attribute GetCustomAttribute(ParameterInfo parameterInfo)
