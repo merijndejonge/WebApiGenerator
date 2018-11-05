@@ -31,8 +31,8 @@ namespace OpenSoftware.WebApiGenerator
     }
     public class ServiceGeneratorOptions : OptionParser
     {
-        public override string Name => "webservice";
-        public override string Description => "Asp.Net Core on-the-fly WebService generator";
+        public override string Name => "webapi";
+        public override string Description => "Asp.Net Core on-the-fly Web service generator.";
 
         [Option(Name = "--urls", Description = "Semi-colon separated list of urls to listen to. E.g., http://0.0.0.0:2700")]
         public StringOption Urls { get; set; }
