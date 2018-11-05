@@ -19,7 +19,7 @@ namespace MyService
         }
 
         [FromPostMethod]
-        public string GetCurrentTimeWithText([FromHttpHeader("Text")]string text, [FromPayload("X")]string bla, [FromPayload("Y")]DateTime foo)
+        public string GetCurrentTimeWithText([FromHttpHeader("MyHeader")]string text, [FromPayload("X")]string bla, [FromPayload("Y")]DateTime foo)
         {
             var result = _stringUtils.ToUpper(DateTime.Now.ToShortTimeString() + " " + text);
             return result;
