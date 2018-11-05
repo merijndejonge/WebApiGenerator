@@ -20,16 +20,40 @@ namespace OpenSoftware.WebApiGenerator
             var logFactory = new LoggerFactory()
                 .AddConsole(LogLevel.Debug)
                 .AddDebug();
+            AppDomain.CurrentDomain.UnhandledException += (s, o) =>
+            {
+                var errorLogger = logFactory.CreateLogger<Program>();
+                errorLogger.LogError(((Exception)o.ExceptionObject).Message);
+                logFactory.Dispose();
+                Environment.Exit(1);
+            };
 
             var logger = logFactory.CreateLogger<Program>();
-
             var options = new ServiceGeneratorOptions();
-            options.Process(args, logger);
+
+            options.Parse(args);
+            if (options.Usage.IsDefined)
+            {
+                options.DisplayUsage(Console.Error);
+                Environment.Exit(0);
+            }
 
             var serviceAssembly = LoadAssemblyFromName(options.ServiceAssembly.Value);
             logger.LogInformation("Using service assembly " + serviceAssembly.Location);
             var startupType = typeof(DefaultGeneratorStartup);
 
+            if (options.DryRun.IsDefined)
+            {
+                var serviceTypes = ControllerFactory.GetServiceTypes(serviceAssembly);
+                var code = ControllerFactory.CreateControllerCode(serviceTypes).ToList();
+                if (code.Any() == false)
+                {
+                    throw new Exception("No controller methods found in service assembly.");
+                }
+                code.ForEach(x => Console.WriteLine(x.NormalizeWhitespace().ToFullString()));
+                logFactory.Dispose();
+                return;
+            }
             if (options.StartupAssembly.IsDefined)
             {
                 var startupAssembly = LoadAssemblyFromName(options.StartupAssembly.Value);
@@ -41,16 +65,7 @@ namespace OpenSoftware.WebApiGenerator
             }
             logger.LogInformation("Using startup class " + startupType.Name);
 
-            if (options.DryRun.IsDefined)
-            {
-                var serviceTypes = ControllerFactory.GetServiceTypes(serviceAssembly);
-                var code = ControllerFactory.CreateControllerCode(serviceTypes).ToList();
-                code.ForEach(x => Console.WriteLine(x.NormalizeWhitespace().ToFullString()));
-                return;
-            }
-
             var serviceArgs = options.Arguments;
-
             if (options.Urls.IsDefined)
             {
                 serviceArgs.Add(options.Urls.Name + "=" + options.Urls.Value);
@@ -58,7 +73,7 @@ namespace OpenSoftware.WebApiGenerator
 
             CreateWebHostBuilder(logFactory, serviceArgs.ToArray(), serviceAssembly, startupType).Build().Run();
         }
-        public static IWebHostBuilder CreateWebHostBuilder(ILoggerFactory logFactory, string[] args,
+        private static IWebHostBuilder CreateWebHostBuilder(ILoggerFactory logFactory, string[] args,
             Assembly serviceAssembly, Type startupType)
             => WebHost.CreateDefaultBuilder(args)
                 .UseStartup(startupType)
@@ -74,7 +89,7 @@ namespace OpenSoftware.WebApiGenerator
         /// </summary>
         /// <param name="assemblyPath"></param>
         /// <returns></returns>
-        public static Assembly LoadAssemblyFromName(string assemblyPath)
+        private static Assembly LoadAssemblyFromName(string assemblyPath)
         {
             var assemblyFullPath = Path.GetFullPath(assemblyPath);
             var fileNameWithOutExtension = Path.GetFileNameWithoutExtension(assemblyFullPath);

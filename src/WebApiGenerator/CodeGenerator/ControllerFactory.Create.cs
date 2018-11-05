@@ -30,11 +30,15 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             }
             else
             {
-                logger.LogInformation($"No service meta data found, using default.");
+                logger.LogInformation("No service meta data found, using default.");
             }
 
             var serviceTypes = GetServiceTypes(assembly);
-            var generatedCode = CreateControllerCode(serviceTypes);
+            var generatedCode = CreateControllerCode(serviceTypes).ToArray();
+            if (generatedCode.Any() == false)
+            {
+                throw new Exception("No controller methods found in service assembly.");
+            }
             var generatedAssembly = CompileControllerCode(generatedCode, assembly);
             var controllerTypes = GetControllerTypes(generatedAssembly);
             return (controllerTypes, serviceMetadata);

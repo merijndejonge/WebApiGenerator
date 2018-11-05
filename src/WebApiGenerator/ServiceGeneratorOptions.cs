@@ -1,34 +1,7 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
-using OpenSoftware.OptionParsing;
+﻿using OpenSoftware.OptionParsing;
 
 namespace OpenSoftware.WebApiGenerator
 {
-    public static class OptionsExtensions
-    {
-        public static void Process(this OptionParser options, string[] args, ILogger logger)
-        {
-            try
-            {
-                options.Parse(args);
-            }
-            catch (SyntaxErrorException e)
-            {
-                logger.LogError("Syntax error " + e.Message);
-                Environment.Exit(1);
-            }
-            catch (InvalidOptionValueException e)
-            {
-                logger.LogError("Invalid options " + e.Message);
-                Environment.Exit(1);
-            }
-            if (options.Usage.IsDefined)
-            {
-                options.DisplayUsage(Console.Error);
-                Environment.Exit(0);
-            }
-        }
-    }
     public class ServiceGeneratorOptions : OptionParser
     {
         public override string Name => "webapi";
