@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -38,7 +39,20 @@ namespace OpenSoftware.WebApiGenerator
                 Environment.Exit(0);
             }
 
-            var serviceAssembly = LoadAssemblyFromName(options.ServiceAssembly.Value);
+            var assemblyFolder = Path.GetDirectoryName(options.ServiceAssembly.Value);
+            if (string.IsNullOrEmpty(assemblyFolder)) assemblyFolder = ".";
+            assemblyFolder = Path.GetFullPath(assemblyFolder);
+            var assemblyFileName = Path.GetFileName(options.ServiceAssembly.Value);
+            var assemblyFolders = new List<string> {assemblyFolder};
+
+            AssemblyLoadContext.Default.Resolving += (a1,a2) => Default_Resolving(a2, assemblyFolders);
+
+
+            var serviceAssembly = LoadAssemblyFromName(assemblyFileName, assemblyFolders);
+            if (serviceAssembly == null)
+            {
+                throw new Exception("Could not load assembly " + options.ServiceAssembly.Value);
+            }
             logger.LogInformation("Using service assembly " + serviceAssembly.Location);
             var startupType = typeof(DefaultGeneratorStartup);
 
@@ -56,7 +70,12 @@ namespace OpenSoftware.WebApiGenerator
             }
             if (options.StartupAssembly.IsDefined)
             {
-                var startupAssembly = LoadAssemblyFromName(options.StartupAssembly.Value);
+                assemblyFolder = Path.GetDirectoryName(options.StartupAssembly.Value);
+                if (string.IsNullOrEmpty(assemblyFolder)) assemblyFolder = ".";
+                assemblyFolder = Path.GetFullPath(assemblyFolder);
+                assemblyFileName = Path.GetFileName(options.ServiceAssembly.Value);
+                assemblyFolders.Add(assemblyFolder);
+                var startupAssembly = LoadAssemblyFromName(assemblyFileName, assemblyFolders);
                 startupType = GetStartupClassFromAssembly(startupAssembly);
                 if (startupType == null)
                 {
@@ -87,21 +106,33 @@ namespace OpenSoftware.WebApiGenerator
         /// <summary>
         /// https://github.com/Particular/Workshop/issues/64
         /// </summary>
-        /// <param name="assemblyPath"></param>
+        /// <param name="assemblyFileName"></param>
+        /// <param name="assemblyFolders"></param>
         /// <returns></returns>
-        private static Assembly LoadAssemblyFromName(string assemblyPath)
+        private static Assembly LoadAssemblyFromName(string assemblyFileName, List<string> assemblyFolders)
         {
-            var assemblyFullPath = Path.GetFullPath(assemblyPath);
-            var fileNameWithOutExtension = Path.GetFileNameWithoutExtension(assemblyFullPath);
+            foreach (var assemblyFolder in assemblyFolders)
+            {
+                var assemblyPath = $@"{assemblyFolder}\{assemblyFileName}";
+                if (Path.HasExtension(assemblyPath) == false)
+                {
+                    assemblyPath += ".dll";
+                }
 
-            var inCompileLibraries = DependencyContext.Default.CompileLibraries.Any(l => l.Name.Equals(fileNameWithOutExtension, StringComparison.OrdinalIgnoreCase));
-            var inRuntimeLibraries = DependencyContext.Default.RuntimeLibraries.Any(l => l.Name.Equals(fileNameWithOutExtension, StringComparison.OrdinalIgnoreCase));
+                if (File.Exists(assemblyPath) == false) continue;
 
-            var assembly = (inCompileLibraries || inRuntimeLibraries)
-                ? Assembly.Load(new AssemblyName(fileNameWithOutExtension))
-                : AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyFullPath);
+                // Requires nuget - System.Runtime.Loader
+                var assembly = AssemblyLoadContext.Default
+                    .LoadFromAssemblyPath(assemblyPath);
+                return assembly;
+            }
 
-            return assembly;
+            return null;
+        }
+
+        private static Assembly Default_Resolving(AssemblyName assemblyToLoad, List<string> assembliesFolder)
+        {
+            return LoadAssemblyFromName(assemblyToLoad.Name, assembliesFolder);
         }
     }
 }
