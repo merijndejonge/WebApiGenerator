@@ -7,7 +7,6 @@ using System.Runtime.Loader;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
 using OpenSoftware.WebApiGenerator.CodeGenerator;
 using OpenSoftware.WebApiGenerator.ControllerInstaller;
@@ -16,20 +15,17 @@ namespace OpenSoftware.WebApiGenerator
 {
     public class Program
     {
+        private static ILoggerFactory _loggerFactory;
+
         public static void Main(string[] args)
         {
-            var logFactory = new LoggerFactory()
+            _loggerFactory = new LoggerFactory()
                 .AddConsole(LogLevel.Debug)
                 .AddDebug();
-            AppDomain.CurrentDomain.UnhandledException += (s, o) =>
-            {
-                var errorLogger = logFactory.CreateLogger<Program>();
-                errorLogger.LogError(((Exception)o.ExceptionObject).Message);
-                logFactory.Dispose();
-                Environment.Exit(1);
-            };
 
-            var logger = logFactory.CreateLogger<Program>();
+            AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
+
+            var logger = _loggerFactory.CreateLogger<Program>();
             var options = new ServiceGeneratorOptions();
 
             options.Parse(args);
@@ -65,7 +61,7 @@ namespace OpenSoftware.WebApiGenerator
                     throw new Exception("No controller methods found in service assembly.");
                 }
                 code.ForEach(x => Console.WriteLine(x.NormalizeWhitespace().ToFullString()));
-                logFactory.Dispose();
+                _loggerFactory.Dispose();
                 return;
             }
             if (options.StartupAssembly.IsDefined)
@@ -90,8 +86,17 @@ namespace OpenSoftware.WebApiGenerator
                 serviceArgs.Add(options.Urls.Name + "=" + options.Urls.Value);
             }
 
-            CreateWebHostBuilder(logFactory, serviceArgs.ToArray(), serviceAssembly, startupType).Build().Run();
+            CreateWebHostBuilder(_loggerFactory, serviceArgs.ToArray(), serviceAssembly, startupType).Build().Run();
         }
+
+        private static void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var errorLogger = _loggerFactory.CreateLogger<Program>();
+            errorLogger.LogError(((Exception) e.ExceptionObject).Message);
+            _loggerFactory.Dispose();
+            Environment.Exit(1);
+        }
+
         private static IWebHostBuilder CreateWebHostBuilder(ILoggerFactory logFactory, string[] args,
             Assembly serviceAssembly, Type startupType)
             => WebHost.CreateDefaultBuilder(args)
