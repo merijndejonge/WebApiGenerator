@@ -5,6 +5,10 @@ namespace OpenSoftware.WebApiClient
     [AttributeUsage(AttributeTargets.Parameter)]
     public class FromClaimAttribute : Attribute
     {
+        public FromClaimAttribute()
+        {
+            
+        }
         public FromClaimAttribute(string name)
         {
             Name = name;

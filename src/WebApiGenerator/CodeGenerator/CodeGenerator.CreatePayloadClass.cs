@@ -21,8 +21,12 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             {
                 var payloadAttribute = payloadParameter.GetCustomAttributes(typeof(FromPayloadAttribute))
                     .OfType<FromPayloadAttribute>().Single();
-
-                var propertyDeclaration = SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(payloadParameter.ParameterType.FullName), payloadAttribute.Name)
+                var propertyName = payloadAttribute.Name;
+                if (string.IsNullOrEmpty(propertyName))
+                {
+                    propertyName = payloadParameter.Name;
+                }
+                var propertyDeclaration = SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(payloadParameter.ParameterType.FullName), propertyName)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                     .AddAccessorListAccessors(
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),

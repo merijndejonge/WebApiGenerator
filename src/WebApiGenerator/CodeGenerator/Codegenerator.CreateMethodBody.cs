@@ -59,6 +59,10 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                     case FromPayloadAttribute payloadAttribute:
                     {
                         var propName = payloadAttribute.Name;
+                        if (string.IsNullOrEmpty(propName))
+                        {
+                            propName = parameterInfo.Name;
+                        }
                         parameterList.Add("payload." + propName);
                         break;
                     }
@@ -68,7 +72,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 }
             }
 
-            string callText = "";
+            string callText;
             if (methodInfo.ReturnType == typeof(void))
             {
                 callText = $"_service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok();";
@@ -101,21 +105,29 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             var attribute =
                 (FromHttpHeaderAttribute) parameterInfo.GetCustomAttributes(typeof(FromHttpHeaderAttribute)).Single();
             var type = parameterInfo.ParameterType;
-
+            var headerName = attribute.Name;
+            if (headerName == null)
+            {
+                headerName = parameterInfo.Name;
+            }
             var statement =
                 SyntaxFactory.ParseStatement(
-                    $@"var value{varCount} = GetFromHttpHeader<{type.FullName}>(""{attribute.Name}"");");
+                    $@"var value{varCount} = GetFromHttpHeader<{type.FullName}>(""{headerName}"");");
             return statement;
         }
 
         private static StatementSyntax ClaimAssignmentStatement(ParameterInfo parameterInfo, int varCount)
         {
-            var claim = (FromClaimAttribute) parameterInfo.GetCustomAttributes(typeof(FromClaimAttribute)).Single();
+            var attribute = (FromClaimAttribute) parameterInfo.GetCustomAttributes(typeof(FromClaimAttribute)).Single();
             var type = parameterInfo.ParameterType;
-
+            var claimName = attribute.Name;
+            if (string.IsNullOrEmpty(claimName))
+            {
+                claimName = parameterInfo.Name;
+            }
             var statement =
                 SyntaxFactory.ParseStatement(
-                    $@"var value{varCount} = GetFromClaim<{type.FullName}>(""{claim.Name}"");");
+                    $@"var value{varCount} = GetFromClaim<{type.FullName}>(""{claimName}"");");
             return statement;
         }
 
