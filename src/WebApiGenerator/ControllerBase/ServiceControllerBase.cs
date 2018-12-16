@@ -9,9 +9,10 @@ namespace OpenSoftware.WebApiGenerator.ControllerBase
     [ApiController]
     public abstract class ServiceControllerBase : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        protected T GetFromHttpHeader<T>(string headerName) where T : class
+        protected T GetFromHttpHeader<T>(string headerName)  
         {
             var header = GetHeader(Request, headerName);
+            if (header == null) return default(T);
             var headerValue = Convert.ChangeType(header, typeof(T));
             return (T) headerValue;
         }
