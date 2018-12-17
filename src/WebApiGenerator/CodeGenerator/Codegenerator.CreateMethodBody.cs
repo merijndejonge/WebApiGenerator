@@ -30,7 +30,8 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 if (attribute is FromHttpHeaderAttribute)
                 {
                     yield return HeaderAssignmentStatement(parameterInfo, varCount);
-                    yield return MakeValueCheck(parameterInfo, varCount);
+                    var valueCheck = MakeValueCheck(parameterInfo, varCount);
+                    if (valueCheck != null) yield return valueCheck;
                 }
                 else if (attribute is FromClaimAttribute)
                 {
@@ -152,7 +153,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                     $@"if(value{varCount} == null){{ return BadRequest(); }}");
             }
 
-            return SyntaxFactory.ParseStatement("");
+            return null;
         }
     }
 }
