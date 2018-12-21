@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OpenSoftware.WebApiClient;
 
@@ -17,7 +18,11 @@ namespace MyService
         {
             return "Hi there!";
         }
-
+        [FromPostMethod]
+        public async Task<string> DoDomething()
+        {
+            return await Task.FromResult("Hello");
+        }
         [FromPostMethod]
         public string DoSomething([FromHttpHeader("MyHeader")]string text, [FromPayload("X")]string propX, [FromPayload("Y")]DateTime propY
         )

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,8 +15,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
     {
         private static MethodDeclarationSyntax CreateEmptyMethod(MethodInfo methodInfo, IList<Type> attributeTypes)
         {
-            var returnType = typeof(IActionResult);
-
+            var returnType = MakeReturnType(methodInfo);
 
             var attributeList = new SeparatedSyntaxList<AttributeSyntax>();
             foreach (var attribute in attributeTypes)
@@ -23,8 +24,12 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             }
 
             var methodDeclaration = SyntaxFactory
-                .MethodDeclaration(SyntaxFactory.ParseTypeName(returnType.FullName), methodInfo.Name)
+                .MethodDeclaration(SyntaxFactory.ParseTypeName(Type2String(returnType)), methodInfo.Name)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            if (IsAsyncMethod(methodInfo))
+            {
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
+            }
             var attributes = SyntaxFactory.AttributeList(attributeList);
             var attributesList = methodDeclaration.AttributeLists.Add(attributes);
             methodDeclaration = methodDeclaration.WithAttributeLists(attributesList);
@@ -40,6 +45,32 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             methodDeclaration = methodDeclaration.WithParameterList(parameters);
 
             return methodDeclaration;
+        }
+        private static bool IsAsyncMethod(MethodInfo method)
+        {
+            var attType = typeof(AsyncStateMachineAttribute);
+
+            // Obtain the custom attribute for the method. 
+            // The value returned contains the StateMachineType property. 
+            // Null is returned if the attribute isn't present for the method. 
+            var attrib = (AsyncStateMachineAttribute)method.GetCustomAttribute(attType);
+
+            return (attrib != null);
+        }
+
+        private static Type MakeReturnType(MethodInfo method)
+        {
+            return IsAsyncMethod(method) ? typeof(Task<IActionResult>) : typeof(IActionResult);
+        }
+
+        public static string Type2String(Type type)
+        {
+            if (!type.IsGenericType) return $"{type.Namespace}.{type.Name}";
+            
+            // Get the C# representation of the generic type minus its type arguments.
+            var name = type.Name.Substring(0, type.Name.IndexOf("`", StringComparison.Ordinal));
+            var arguments = type.GetGenericArguments().Select(Type2String);
+            return $"{type.Namespace}.{name}<{string.Join(",", arguments)}>";
         }
     }
 }

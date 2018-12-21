@@ -83,8 +83,15 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             }
             else
             {
-                callText =
-                    $"var result = _service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok(result);";
+                var @await = "";
+                var call = $"_service.{ methodInfo.Name} ({ string.Join(',', parameterList)}); return Ok(result); ";
+                if (IsAsyncMethod(methodInfo))
+                {
+
+                    @await = "await";
+                }
+
+                callText = $"var result = {@await} {call}";
             }
 
             callText = $"try {{ {callText} }} catch{{ return BadRequest(); }}";
