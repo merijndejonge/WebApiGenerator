@@ -40,6 +40,10 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                     return assembly;
                 }
 
+                foreach (var resultDiagnostic in result.Diagnostics)
+                {
+                    Console.Error.WriteLine(resultDiagnostic);
+                }
                 throw new Exception("Compilation failed" + result.Diagnostics);
             }
         }
