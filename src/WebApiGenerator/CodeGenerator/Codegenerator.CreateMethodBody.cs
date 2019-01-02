@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using OpenSoftware.WebApiClient;
@@ -77,9 +78,14 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             }
 
             string callText;
+
             if (methodInfo.ReturnType == typeof(void))
             {
                 callText = $"_service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok();";
+            }
+            else if (methodInfo.ReturnType == typeof(Task))
+            {
+                callText = $"await _service.{methodInfo.Name}({string.Join(',', parameterList)}); return Ok();";
             }
             else
             {
@@ -87,7 +93,6 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 var call = $"_service.{ methodInfo.Name} ({ string.Join(',', parameterList)}); return Ok(result); ";
                 if (IsAsyncMethod(methodInfo))
                 {
-
                     @await = "await";
                 }
 
