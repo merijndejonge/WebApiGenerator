@@ -39,6 +39,13 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 controllerClass = controllerClass.AddMembers(postMethod);
                 ns = ns.AddMembers(postPayloadClass);
             }
+            var deleteMethodInfos = GetServiceMethod<FromDeleteMethodAttribute>(serviceType).ToArray();
+            foreach (var methodInfo in deleteMethodInfos)
+            {
+                var (method, payloadClass) = CreateMethod<HttpDeleteAttribute>(methodInfo);
+                controllerClass = controllerClass.AddMembers(method);
+                ns = ns.AddMembers(payloadClass);
+            }
             ns = ns.AddMembers(controllerClass);
 
             var compilationUnit = SyntaxFactory.CompilationUnit();

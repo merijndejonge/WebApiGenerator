@@ -28,7 +28,8 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
         private static bool IsServiceMethod(MethodInfo method)
         {
             return method.GetCustomAttributes<FromGetMethodAttribute>().Any() ||
-                   method.GetCustomAttributes<FromPostMethodAttribute>().Any();
+                   method.GetCustomAttributes<FromPostMethodAttribute>().Any() ||
+                   method.GetCustomAttributes<FromDeleteMethodAttribute>().Any();
         }
     }
 }
