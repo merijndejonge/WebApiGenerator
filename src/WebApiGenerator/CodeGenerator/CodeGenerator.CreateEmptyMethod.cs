@@ -23,6 +23,11 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 attributeList = attributeList.Add(SyntaxFactory.Attribute(SyntaxFactory.ParseName(attribute.FullName)));
             }
 
+            var routeAttribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName(typeof(RouteAttribute).FullName),
+                SyntaxFactory.ParseAttributeArgumentList(@"(""[action]"")")
+                );
+            attributeList = attributeList.Add(routeAttribute);
+
             var methodDeclaration = SyntaxFactory
                 .MethodDeclaration(SyntaxFactory.ParseTypeName(Type2String(returnType)), methodInfo.Name)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));

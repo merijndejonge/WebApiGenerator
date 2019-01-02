@@ -22,9 +22,9 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             var controllerClass = CreateEmptyController(serviceType);
 
             var getMethodInfos = GetServiceMethod<FromGetMethodAttribute>(serviceType).ToArray();
-            if (getMethodInfos.Any())
+            foreach (var methodInfo in getMethodInfos)
             {
-                var (method, payloadClass) = CreateMethod<HttpGetAttribute>(getMethodInfos[0]);
+                var (method, payloadClass) = CreateMethod<HttpGetAttribute>(methodInfo);
                 controllerClass = controllerClass.AddMembers(method);
                 if (payloadClass != null)
                 {
@@ -33,9 +33,9 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             }
 
             var postMethodInfos = GetServiceMethod<FromPostMethodAttribute>(serviceType).ToArray();
-            if (postMethodInfos.Any())
+            foreach (var methodInfo in postMethodInfos)
             {
-                var (postMethod, postPayloadClass) = CreateMethod<HttpPostAttribute>(postMethodInfos[0]);
+                var (postMethod, postPayloadClass) = CreateMethod<HttpPostAttribute>(methodInfo);
                 controllerClass = controllerClass.AddMembers(postMethod);
                 ns = ns.AddMembers(postPayloadClass);
             }
