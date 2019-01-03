@@ -35,9 +35,12 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             var postMethodInfos = GetServiceMethod<FromPostMethodAttribute>(serviceType).ToArray();
             foreach (var methodInfo in postMethodInfos)
             {
-                var (postMethod, postPayloadClass) = CreateMethod<HttpPostAttribute>(methodInfo);
+                var (postMethod, payloadClass) = CreateMethod<HttpPostAttribute>(methodInfo);
                 controllerClass = controllerClass.AddMembers(postMethod);
-                ns = ns.AddMembers(postPayloadClass);
+                if (payloadClass != null)
+                {
+                    ns = ns.AddMembers(payloadClass);
+                }
             }
 
             var deleteMethodInfos = GetServiceMethod<FromDeleteMethodAttribute>(serviceType).ToArray();
@@ -45,8 +48,12 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             {
                 var (method, payloadClass) = CreateMethod<HttpDeleteAttribute>(methodInfo);
                 controllerClass = controllerClass.AddMembers(method);
-                ns = ns.AddMembers(payloadClass);
+                if (payloadClass != null)
+                {
+                    ns = ns.AddMembers(payloadClass);
+                }
             }
+
             ns = ns.AddMembers(controllerClass);
 
             var compilationUnit = SyntaxFactory.CompilationUnit();
