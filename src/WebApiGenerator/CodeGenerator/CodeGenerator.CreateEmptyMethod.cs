@@ -4,10 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using OpenSoftware.WebApiClient;
 
 namespace OpenSoftware.WebApiGenerator.CodeGenerator
 {
@@ -17,6 +19,12 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
         {
             var returnType = MakeReturnType(methodInfo);
 
+            var claimParameters = GetClaimsParameters(methodInfo);
+            if (claimParameters.Any())
+            {
+                attributeTypes = attributeTypes.ToList();
+                attributeTypes.Add(typeof(AuthorizeAttribute));
+            }
             var attributeList = new SeparatedSyntaxList<AttributeSyntax>();
             foreach (var attribute in attributeTypes)
             {
@@ -50,6 +58,10 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             methodDeclaration = methodDeclaration.WithParameterList(parameters);
 
             return methodDeclaration;
+        }
+        private static IEnumerable<ParameterInfo> GetClaimsParameters(MethodInfo methodInfo)
+        {
+            return methodInfo.GetParameters().Where(x => x.GetCustomAttributes(typeof(FromClaimAttribute)).Any());
         }
         private static bool IsAsyncMethod(MethodInfo method)
         {
