@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.CodeAnalysis;
@@ -41,10 +40,7 @@ namespace OpenSoftware.WebApiGenerator
             var assemblyFileName = Path.GetFileName(options.ServiceAssembly.Value);
             var assemblyFolders = new List<string> {assemblyFolder};
 
-            AssemblyLoadContext.Default.Resolving += (a1,a2) => Default_Resolving(a2, assemblyFolders);
-
-
-            var serviceAssembly = LoadAssemblyFromName(assemblyFileName, assemblyFolders);
+            var serviceAssembly= new AssemblyResolver(logger, assemblyFolder + Path.DirectorySeparatorChar + assemblyFileName).Assembly;
             if (serviceAssembly == null)
             {
                 throw new Exception("Could not load assembly " + options.ServiceAssembly.Value);
@@ -71,7 +67,7 @@ namespace OpenSoftware.WebApiGenerator
                 assemblyFolder = Path.GetFullPath(assemblyFolder);
                 assemblyFileName = Path.GetFileName(options.ServiceAssembly.Value);
                 assemblyFolders.Add(assemblyFolder);
-                var startupAssembly = LoadAssemblyFromName(assemblyFileName, assemblyFolders);
+                var startupAssembly = new AssemblyResolver(logger, assemblyFolder + Path.DirectorySeparatorChar + assemblyFileName).Assembly;
                 startupType = GetStartupClassFromAssembly(startupAssembly);
                 if (startupType == null)
                 {
@@ -106,38 +102,6 @@ namespace OpenSoftware.WebApiGenerator
         {
             return startupAssembly.GetTypes().SingleOrDefault(x =>
                 x.GetMethods().Any(m => m.Name == nameof(DefaultGeneratorStartup.Configure)));
-        }
-
-        /// <summary>
-        /// https://github.com/Particular/Workshop/issues/64
-        /// </summary>
-        /// <param name="assemblyFileName"></param>
-        /// <param name="assemblyFolders"></param>
-        /// <returns></returns>
-        private static Assembly LoadAssemblyFromName(string assemblyFileName, List<string> assemblyFolders)
-        {
-            foreach (var assemblyFolder in assemblyFolders)
-            {
-                var assemblyPath = $@"{assemblyFolder}\{assemblyFileName}";
-                if (Path.HasExtension(assemblyPath) == false)
-                {
-                    assemblyPath += ".dll";
-                }
-
-                if (File.Exists(assemblyPath) == false) continue;
-
-                // Requires nuget - System.Runtime.Loader
-                var assembly = AssemblyLoadContext.Default
-                    .LoadFromAssemblyPath(assemblyPath);
-                return assembly;
-            }
-
-            return null;
-        }
-
-        private static Assembly Default_Resolving(AssemblyName assemblyToLoad, List<string> assembliesFolder)
-        {
-            return LoadAssemblyFromName(assemblyToLoad.Name, assembliesFolder);
         }
     }
 }
