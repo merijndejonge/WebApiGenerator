@@ -11,7 +11,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
 {
     public partial class CodeGenerator
     {
-        public static IEnumerable<MethodInfo> GetServiceMethod<T>(Type serviceType) where T : Attribute
+        public static IEnumerable<MethodInfo> GetServiceMethods<T>(Type serviceType) where T : Attribute
         {
             return serviceType.GetMethods().Where(x => x.GetCustomAttributes<T>().Any());
         }
@@ -21,7 +21,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
             var ns = CreateNameSpace(@namespace, serviceType.Name);
             var controllerClass = CreateEmptyController(serviceType);
 
-            var getMethodInfos = GetServiceMethod<FromGetMethodAttribute>(serviceType).ToArray();
+            var getMethodInfos = GetServiceMethods<FromGetMethodAttribute>(serviceType).ToArray();
             foreach (var methodInfo in getMethodInfos)
             {
                 var (method, payloadClass) = CreateMethod<HttpGetAttribute>(methodInfo);
@@ -32,7 +32,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 }
             }
 
-            var postMethodInfos = GetServiceMethod<FromPostMethodAttribute>(serviceType).ToArray();
+            var postMethodInfos = GetServiceMethods<FromPostMethodAttribute>(serviceType).ToArray();
             foreach (var methodInfo in postMethodInfos)
             {
                 var (postMethod, payloadClass) = CreateMethod<HttpPostAttribute>(methodInfo);
@@ -43,7 +43,7 @@ namespace OpenSoftware.WebApiGenerator.CodeGenerator
                 }
             }
 
-            var deleteMethodInfos = GetServiceMethod<FromDeleteMethodAttribute>(serviceType).ToArray();
+            var deleteMethodInfos = GetServiceMethods<FromDeleteMethodAttribute>(serviceType).ToArray();
             foreach (var methodInfo in deleteMethodInfos)
             {
                 var (method, payloadClass) = CreateMethod<HttpDeleteAttribute>(methodInfo);
