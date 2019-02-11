@@ -12,6 +12,12 @@ namespace MyService
         {
             _stringUtils = stringUtils;
         }
+
+        [FromGetMethod]
+        public string Foo(string foobar)
+        {
+            return foobar;
+        }
         [FromGetMethod]
         public string GetCurrentTime()
         { 

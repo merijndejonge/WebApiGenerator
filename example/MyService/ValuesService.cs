@@ -14,9 +14,9 @@ namespace MyService
             _stringUtils = stringUtils;
         }
         [FromGetMethod]
-        public string Get()
+        public string Get(string text)
         {
-            return "Hi there!";
+            return "Hi there! " + text;
         }
         [FromPostMethod]
         public async Task<string> DoDomething()
